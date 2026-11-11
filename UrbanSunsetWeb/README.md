@@ -3,7 +3,7 @@
 A remake of the 2015 GD2A endless runner (the Unity 5 project in the repository root), rebuilt in
 **Unity 6** for **WebGL**, with phones as the main target.
 
-Once published it is playable at **https://kmopman.github.io/GD2A_2D_Endless_Runner/**
+Once published it is playable at **https://armin-rkb.github.io/Urban-Sunset/**
 (see the one-time setup below).
 
 ## How to play
