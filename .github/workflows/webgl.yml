@@ -1,0 +1,87 @@
+name: Build & publish WebGL
+
+# Builds UrbanSunsetWeb (Unity 6) for the browser and publishes it to the gh-pages branch,
+# which GitHub Pages serves at https://<owner>.github.io/<repo>/
+#
+# One-time setup (see UrbanSunsetWeb/README.md):
+#   1. Repo secrets UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD (free Unity Personal licence works).
+#   2. Settings -> Pages -> "Deploy from a branch" -> gh-pages / (root), after the first run.
+
+on:
+  push:
+    branches: [master, main, claude/unity-web-mobile-build-w8sing]
+    paths:
+      - "UrbanSunsetWeb/**"
+      - ".github/workflows/webgl.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: webgl-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build WebGL
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check Unity licence secrets
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if [ -z "$UNITY_LICENSE" ] || [ -z "$UNITY_EMAIL" ] || [ -z "$UNITY_PASSWORD" ]; then
+            echo "::error title=Unity licence missing::Add the UNITY_LICENSE, UNITY_EMAIL and UNITY_PASSWORD repository secrets. See UrbanSunsetWeb/README.md."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Free disk space for the Unity image
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          df -h /
+
+      - uses: actions/cache@v4
+        with:
+          path: UrbanSunsetWeb/Library
+          key: Library-WebGL-${{ hashFiles('UrbanSunsetWeb/Assets/**', 'UrbanSunsetWeb/Packages/**', 'UrbanSunsetWeb/ProjectSettings/**') }}
+          restore-keys: |
+            Library-WebGL-
+
+      - name: Build with Unity
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: UrbanSunsetWeb
+          targetPlatform: WebGL
+          buildName: UrbanSunset
+          buildMethod: UrbanSunset.EditorTools.WebBuild.Build
+          allowDirtyBuild: true
+
+      - name: List build output
+        run: |
+          sudo chown -R "$(id -u):$(id -g)" build
+          ls -la build/WebGL/UrbanSunset build/WebGL/UrbanSunset/Build
+          du -sh build/WebGL/UrbanSunset
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: UrbanSunset-WebGL
+          path: build/WebGL/UrbanSunset
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/WebGL/UrbanSunset
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: "Publish WebGL build ${{ github.sha }}"
