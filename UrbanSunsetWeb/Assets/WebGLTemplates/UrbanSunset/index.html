@@ -47,17 +47,17 @@
       padding: 8px 12px; border-radius: 999px; cursor: pointer;
     }
     #fs-btn {
-      top: calc(env(safe-area-inset-top, 0px) + 10px); left: 50%; transform: translateX(-50%);
-      display: none; opacity: .85;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); left: 50%; transform: translateX(-50%);
+      display: none; opacity: .7; padding: 6px 10px; font-size: 11px;
     }
     #rotate-hint {
       bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); left: 50%; transform: translateX(-50%);
       display: none; white-space: nowrap; cursor: default;
     }
     #toast {
-      position: fixed; z-index: 30; left: 50%; top: 18%; transform: translateX(-50%);
+      position: fixed; z-index: 30; left: 50%; top: 62%; transform: translateX(-50%);
       background: rgba(0,0,0,.75); border: 2px solid #ffd640; padding: 10px 16px;
-      font: bold 14px "Courier New", monospace; letter-spacing: 1px; max-width: 86vw; word-break: break-all;
+      font: bold 14px "Courier New", monospace; letter-spacing: 1px; max-width: 86vw; overflow-wrap: anywhere;
       opacity: 0; transition: opacity .25s; pointer-events: none; text-align: center;
     }
     #toast.show { opacity: 1; }

@@ -15,7 +15,9 @@ namespace UrbanSunset
         const float FallGravityMultiplier = 1.3f;
         const float JumpVelocity = 16.5f;
         const float DoubleJumpVelocity = 14.5f;
-        const float JumpCutMultiplier = 0.45f;
+        const float JumpCutMultiplier = 0.5f;
+        // A quick tap always rises at least this high (clears a trash can); holding goes higher.
+        const float MinJumpHeight = 1.6f;
         const float FastFallVelocity = -26f;
         const float JumpBufferTime = 0.15f;
         const float HitStunTime = 0.35f;
@@ -37,6 +39,7 @@ namespace UrbanSunset
         float jumpBuffer;
         bool usedDoubleJump;
         bool jumpCut;
+        float cutHeight;
         float invulnerable;
         float hitStun;
         float deathTime;
@@ -117,6 +120,7 @@ namespace UrbanSunset
                     Grounded = false;
                     Sliding = false;
                     jumpCut = false;
+                    cutHeight = MinJumpHeight;
                     jumpBuffer = 0f;
                     squash = new Vector3(0.75f, 1.3f, 1f);
                     game.Audio.Sfx("jump", 0.7f, 1f, 0.05f);
@@ -127,6 +131,7 @@ namespace UrbanSunset
                     VelocityY = DoubleJumpVelocity;
                     usedDoubleJump = true;
                     jumpCut = false;
+                    cutHeight = transform.position.y + 1.2f;
                     jumpBuffer = 0f;
                     squash = new Vector3(0.8f, 1.2f, 1f);
                     game.Audio.Sfx("jump", 0.7f, 1.3f, 0.05f);
@@ -135,8 +140,8 @@ namespace UrbanSunset
                 // otherwise keep the buffer: the jump fires the moment we land
             }
 
-            // Release early for a short hop.
-            if (!Grounded && !jumpHeld && VelocityY > 0f && !jumpCut)
+            // Release early for a lower jump, but never lower than MinJumpHeight.
+            if (!Grounded && !jumpHeld && VelocityY > 0f && !jumpCut && transform.position.y >= cutHeight)
             {
                 VelocityY *= JumpCutMultiplier;
                 jumpCut = true;
